@@ -68,64 +68,24 @@ class MainActivity : ComponentActivity() {
 
             val navigationController = rememberNavController()
 
-            NavHost (
+            NavHost(
                 navController = navigationController,
-                startDestination = Routes.PantallaLogin.route
-            )
-            {
-                composable(Routes.PantallaLogin.route){ PantallaLogin(navigationController)}
-                composable(Routes.PantallaPrincipal.route) {PantallaPrincipal(navigationController)}
-                composable(Routes.PantallaConfiguracion.route){PantallaConfiguracion(navigationController)}
-                composable(Routes.PantallaEntrenamientoSonido.route){PantallaEntrenamientoSonido(navigationController)}
-                //composable(Routes.PantallaEnvioWhastsApp.route){PantallaEnvioWhastsApp(navigationController)}
-
+                startDestination = Routes.PantallaPrincipal.route
+            ) {
+                composable(Routes.PantallaPrincipal.route) { PantallaPrincipal(navigationController) }
+                composable(Routes.PantallaConfiguracion.route) { PantallaConfiguracion(navigationController) }
+                composable(Routes.PantallaEntrenamientoSonido.route) { PantallaEntrenamientoSonido(navigationController) }
             }
 
             // MANEJO DE SONIDOS CON EL MODELO
 
             var audioCategory by remember { mutableStateOf("Categoría: No detectada") }
 
-            val context = LocalContext.current
-            val permissionLauncher = rememberLauncherForActivityResult(
-                ActivityResultContracts.RequestPermission()
-            ) { isGranted ->
-                if (!isGranted) {
-                    // Manejar denegación de permiso
-                }
-            }
-
-            // Verificar permisos de audio
-            LaunchedEffect(Unit) {
-                if (ContextCompat.checkSelfPermission(
-                        context, Manifest.permission.RECORD_AUDIO
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-                }
-            }
-
-            // UI del botón
-            Column(
-                modifier = Modifier.fillMaxSize(),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(text = audioCategory)
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Button(
-                    onClick = { startListening { category -> audioCategory = "Categoría: $category" } }
-                ) {
-                    Text(text = "Comenzar detección")
-                }
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Button(onClick = { stopListening() }) {
-                    Text(text = "Detener detección")
-                }
-            }
+            PantallaDeteccionSonido(
+                audioCategory = audioCategory,
+                onStartListening = { startListening { category -> audioCategory = "Categoría: $category" } },
+                onStopListening = { stopListening() }
+            )
         }
     }
 
@@ -257,43 +217,39 @@ class MainActivity : ComponentActivity() {
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun MostrarPantallaLogin(){
-    PantallaLogin(null)
+fun PreviewPantallaDeteccionSonido() {
+    PantallaDeteccionSonido(
+        audioCategory = "Categoría: No detectada",
+        onStartListening = { /* Simula el inicio de la detección */ },
+        onStopListening = { /* Simula la detención de la detección */ }
+    )
 }
 
 @Composable
-fun PantallaLogin(navigationController: NavHostController?) {
+fun PantallaDeteccionSonido(
+    audioCategory: String,
+    onStartListening: () -> Unit,
+    onStopListening: () -> Unit
+) {
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(color = Color.White)
-            .padding(16.dp),
+        modifier = Modifier.fillMaxSize(),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
-
-
     ) {
-        //Titulo Login
-        Text(
-            text = "Login",
-            fontSize = 24.sp
-        )
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(32.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Button(
-                onClick = { navigationController?.navigate(Routes.PantallaPrincipal.route) },
-                modifier = Modifier
-                    .width(130.dp)
-                    .height(45.dp)
-            ) {
-                Text(
-                    text = "Iniciar",
-                    fontSize = 18.sp
-                )
-            }
+        Text(text = audioCategory)
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = { onStartListening() }
+        ) {
+            Text(text = "Comenzar detección")
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(onClick = { onStopListening() }) {
+            Text(text = "Detener detección")
         }
     }
 }
