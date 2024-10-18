@@ -67,7 +67,7 @@ class MainActivity : ComponentActivity() {
             // NAVEGACION DE LA APLICACION
 
             val navigationController = rememberNavController()
-
+            var audioCategory by remember { mutableStateOf("Categoría: No detectada") }
             NavHost(
                 navController = navigationController,
                 startDestination = Routes.PantallaPrincipal.route
@@ -75,17 +75,15 @@ class MainActivity : ComponentActivity() {
                 composable(Routes.PantallaPrincipal.route) { PantallaPrincipal(navigationController) }
                 composable(Routes.PantallaConfiguracion.route) { PantallaConfiguracion(navigationController) }
                 composable(Routes.PantallaEntrenamientoSonido.route) { PantallaEntrenamientoSonido(navigationController) }
-            }
-
+                composable(Routes.PantallaDeteccionSonido.route){
             // MANEJO DE SONIDOS CON EL MODELO
-
-            var audioCategory by remember { mutableStateOf("Categoría: No detectada") }
 
             PantallaDeteccionSonido(
                 audioCategory = audioCategory,
                 onStartListening = { startListening { category -> audioCategory = "Categoría: $category" } },
                 onStopListening = { stopListening() }
-            )
+            ) }
+             }
         }
     }
 

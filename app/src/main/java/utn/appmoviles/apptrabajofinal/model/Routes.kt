@@ -6,4 +6,5 @@ public sealed class Routes(val route: String) {
     object PantallaConfiguracion:Routes("pantallaConfiguracion")
     object PantallaEntrenamientoSonido:Routes("pantallaEntrenamientoSonido")
     object PantallaEnvioWhastsApp:Routes("pantallaEnvioWhatsApp")
+    object PantallaDeteccionSonido:Routes("pantallaDeteccionSonido")
 }
