@@ -41,12 +41,22 @@ data class Sonido(val nombre: String, val color: Color)
 
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
-fun MostrarPantallaPrincipal() {
-    PantallaPrincipal(null)
+fun PreviewPantallaDeteccion() {
+    PantallaPrincipal(
+        audioCategory = "Sirena Policía",
+        onStartListening = { /* Acción iniciar detección */ },
+        onStopListening = { /* Acción detener detección */ },
+        navigationController = null // Puedes pasar null para el preview
+    )
 }
 
 @Composable
-fun PantallaPrincipal(navigationController: NavHostController?) {
+fun PantallaPrincipal(
+    navigationController: NavHostController?,
+    audioCategory: String,
+    onStartListening: () -> Unit,
+    onStopListening: () -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -66,6 +76,16 @@ fun PantallaPrincipal(navigationController: NavHostController?) {
 
         Spacer(modifier = Modifier.padding(24.dp))
 
+        // Mostrar categoría de sonido detectado
+        Text(
+            text = "$audioCategory",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Medium,
+            color = Color(0xFF3F51B5) // Azul elegante para destacar la categoría
+        )
+
+        Spacer(modifier = Modifier.padding(16.dp))
+
         // Lista de Sonidos
         Column(
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -79,13 +99,13 @@ fun PantallaPrincipal(navigationController: NavHostController?) {
 
         Spacer(modifier = Modifier.padding(25.dp))
 
-        // Botones de Control
+        // Botones de Control para Detección
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Button(
-                onClick = { /* Acción iniciar */ },
+                onClick = { onStartListening() }, // Acción iniciar detección
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6200EA)),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
@@ -100,7 +120,7 @@ fun PantallaPrincipal(navigationController: NavHostController?) {
             }
 
             Button(
-                onClick = { /* Acción detener */ },
+                onClick = { onStopListening() }, // Acción detener detección
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB00020)),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
@@ -139,7 +159,7 @@ fun SonidoItem(sonido: Sonido) {
             .fillMaxWidth()
             .padding(4.dp)
             .shadow(4.dp, shape = RoundedCornerShape(10.dp)),
-        colors = CardDefaults.cardColors(containerColor = Color.White), // Corregido
+        colors = CardDefaults.cardColors(containerColor = Color.White),
         shape = RoundedCornerShape(10.dp)
     ) {
         Row(
@@ -164,4 +184,6 @@ fun SonidoItem(sonido: Sonido) {
         }
     }
 }
+
+
 

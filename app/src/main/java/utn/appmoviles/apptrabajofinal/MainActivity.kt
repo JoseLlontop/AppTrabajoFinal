@@ -6,33 +6,21 @@ import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import org.tensorflow.lite.Interpreter
 import java.nio.ByteBuffer
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.foundation.background
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import java.io.IOException
 import java.nio.ByteOrder
 import utn.appmoviles.apptrabajofinal.model.Routes
+import utn.appmoviles.apptrabajofinal.PantallaConfiguracion
+import utn.appmoviles.apptrabajofinal.PantallaEntrenamientoSonido
 
 
 class MainActivity : ComponentActivity() {
@@ -63,31 +51,30 @@ class MainActivity : ComponentActivity() {
         }
 
         setContent {
-
             // NAVEGACION DE LA APLICACION
-
             val navigationController = rememberNavController()
+
+            // MANEJO DE SONIDOS CON EL MODELO
+            var audioCategory by remember { mutableStateOf("No detectada") }
 
             NavHost(
                 navController = navigationController,
                 startDestination = Routes.PantallaPrincipal.route
             ) {
-                composable(Routes.PantallaPrincipal.route) { PantallaPrincipal(navigationController) }
+                composable(Routes.PantallaPrincipal.route) {
+                    PantallaPrincipal(
+                        audioCategory = audioCategory,
+                        onStartListening = { startListening { category -> audioCategory = "Categoría: $category" } },
+                        onStopListening = { stopListening() },
+                        navigationController = navigationController // Puedes pasar null para el preview
+                    )
+                }
                 composable(Routes.PantallaConfiguracion.route) { PantallaConfiguracion(navigationController) }
                 composable(Routes.PantallaEntrenamientoSonido.route) { PantallaEntrenamientoSonido(navigationController) }
             }
-
-            // MANEJO DE SONIDOS CON EL MODELO
-
-            var audioCategory by remember { mutableStateOf("Categoría: No detectada") }
-
-            PantallaDeteccionSonido(
-                audioCategory = audioCategory,
-                onStartListening = { startListening { category -> audioCategory = "Categoría: $category" } },
-                onStopListening = { stopListening() }
-            )
         }
     }
+
 
     private fun startListening(onResult: (String) -> Unit) {
         if (!isRecording) {
@@ -113,17 +100,19 @@ class MainActivity : ComponentActivity() {
             // Hilo para capturar y procesar el audio
             Thread {
                 val buffer = ByteBuffer.allocateDirect(1024 * 2)
+
                 while (isRecording) {
                     val readSize = audioRecord.read(buffer, 1024)
                     if (readSize > 0) {
+
                         val processedBuffer = padOrTrim(buffer, inputSize)  // Ajustar al tamaño del tensor
                         val category = processAudio(processedBuffer)
 
                         if (category != "No detectada") {
                             // Mostrar la categoría y detener detección por 10 segundos
                             onResult(category)
-                            Thread.sleep(10_000)  // Pausa la detección por 10 segundos
-                            onResult("Categoría: No detectada")  // Reinicia el estado después de 10 segundos
+                            Thread.sleep(1_000)  // Pausa la detección por 10 segundos
+                            onResult("No detectada")  // Reinicia el estado después de 10 segundos
                         }
                     }
                 }
@@ -171,7 +160,8 @@ class MainActivity : ComponentActivity() {
 
         // Copia los datos del buffer de audio al inputBuffer
         buffer.rewind()  // Asegura que el buffer original esté en el estado correcto
-        inputBuffer.put(buffer)
+        inputBuffer.put(buffer) // Verifica que el tamaño y formato sean correctos.
+        inputBuffer.rewind() // Añadir rewind para asegurarse de que el buffer esté listo para la inferencia.
 
         // Cambia el tamaño del arreglo de salida según la salida esperada del modelo
         val output = Array(1) { FloatArray(2) }  // Cambiar a 2 clases
@@ -187,8 +177,9 @@ class MainActivity : ComponentActivity() {
         val categories = listOf("sonidos_bomberos", "sonidos_policia")
 
         // Umbral de confianza: solo mostrar si la probabilidad
-        return if (confidence >= 0.6) {
+        return if (confidence >= 0.5) {
             categories[maxIndex]  // Retorna la categoría detectada si supera el umbral
+
         } else {
             "No detectada"  // Retorna "No detectada" si no se alcanza el umbral
         }
@@ -213,45 +204,6 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-}
-
-@Preview(showBackground = true, showSystemUi = true)
-@Composable
-fun PreviewPantallaDeteccionSonido() {
-    PantallaDeteccionSonido(
-        audioCategory = "Categoría: No detectada",
-        onStartListening = { /* Simula el inicio de la detección */ },
-        onStopListening = { /* Simula la detención de la detección */ }
-    )
-}
-
-@Composable
-fun PantallaDeteccionSonido(
-    audioCategory: String,
-    onStartListening: () -> Unit,
-    onStopListening: () -> Unit
-) {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(text = audioCategory)
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = { onStartListening() }
-        ) {
-            Text(text = "Comenzar detección")
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(onClick = { onStopListening() }) {
-            Text(text = "Detener detección")
-        }
-    }
 }
 
 

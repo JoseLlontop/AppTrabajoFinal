@@ -1,9 +1,9 @@
 package utn.appmoviles.apptrabajofinal.model
 
-public sealed class Routes(val route: String) {
-    object PantallaLogin:Routes("pantallaLogin")
-    object PantallaPrincipal:Routes("pantallaPrincipal")
-    object PantallaConfiguracion:Routes("pantallaConfiguracion")
-    object PantallaEntrenamientoSonido:Routes("pantallaEntrenamientoSonido")
-    object PantallaEnvioWhastsApp:Routes("pantallaEnvioWhatsApp")
+sealed class Routes(val route: String) {
+    data object PantallaLogin:Routes("pantallaLogin")
+    data object PantallaPrincipal:Routes("pantallaPrincipal")
+    data object PantallaConfiguracion:Routes("pantallaConfiguracion")
+    data object PantallaEntrenamientoSonido:Routes("pantallaEntrenamientoSonido")
+    data object PantallaEnvioWhastsApp:Routes("pantallaEnvioWhatsApp")
 }
