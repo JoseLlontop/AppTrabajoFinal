@@ -21,6 +21,10 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -57,70 +61,58 @@ fun PantallaPrincipal(
     onStartListening: () -> Unit,
     onStopListening: () -> Unit
 ) {
+    var isRecording by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(color = Color(0xFFF5F5F5)) // Fondo suave gris claro
+            .background(color = Color(0xFFF5F5F5))
             .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Título
         Text(
-            text = "Sonidos Detectados",
-            fontSize = 28.sp,
-            textAlign = TextAlign.Center,
-            fontWeight = FontWeight.Bold,
-            color = Color(0xFF333333) // Color de texto más elegante
-        )
-
-        Spacer(modifier = Modifier.padding(24.dp))
-
-        // Mostrar categoría de sonido detectado
-        Text(
-            text = "$audioCategory",
+            text = audioCategory,
             fontSize = 20.sp,
             fontWeight = FontWeight.Medium,
-            color = Color(0xFF3F51B5) // Azul elegante para destacar la categoría
+            color = Color(0xFF3F51B5)
         )
 
         Spacer(modifier = Modifier.padding(16.dp))
 
-        // Lista de Sonidos
-        Column(
-            verticalArrangement = Arrangement.spacedBy(12.dp),
-            horizontalAlignment = Alignment.Start
-        ) {
-            SonidoItem(Sonido("Sirena Policía", Color(0xFF3F51B5))) // Azul elegante
-            SonidoItem(Sonido("Bocina Auto", Color(0xFF795548)))    // Marrón oscuro
-            SonidoItem(Sonido("Bocina Camión", Color(0xFF4CAF50)))  // Verde suave
-            SonidoItem(Sonido("Sirena Bomberos", Color(0xFFD32F2F))) // Rojo intenso
-        }
-
-        Spacer(modifier = Modifier.padding(25.dp))
-
-        // Botones de Control para Detección
         Row(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Button(
-                onClick = { onStartListening() }, // Acción iniciar detección
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF6200EA)),
+                onClick = {
+                    if (!isRecording) {
+                        isRecording = true
+                        onStartListening()
+                    }
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isRecording) Color(0xFFFFC107) else Color(0xFF6200EA)
+                ),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .width(130.dp)
                     .height(50.dp)
             ) {
                 Text(
-                    text = "Iniciar",
+                    text = if (isRecording) "Grabando..." else "Iniciar",
                     fontSize = 18.sp,
                     color = Color.White
                 )
             }
 
             Button(
-                onClick = { onStopListening() }, // Acción detener detección
+                onClick = {
+                    if (isRecording) {
+                        isRecording = false
+                        onStopListening()
+                    }
+                },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFB00020)),
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
@@ -134,23 +126,10 @@ fun PantallaPrincipal(
                 )
             }
         }
-
-        // Botón de Configuración
-        Button(
-            onClick = { navigationController?.navigate(Routes.PantallaConfiguracion.route) },
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent),
-            modifier = Modifier.padding(top = 24.dp),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
-        ) {
-            Icon(
-                painter = painterResource(id = R.drawable.img),
-                contentDescription = "Configuración",
-                tint = Color(0xFF666666),
-                modifier = Modifier.size(35.dp)
-            )
-        }
     }
 }
+
+
 
 @Composable
 fun SonidoItem(sonido: Sonido) {

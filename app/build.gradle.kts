@@ -45,6 +45,12 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/DEPENDENCIES"
+            excludes += "/META-INF/LICENSE"
+            excludes += "/META-INF/LICENSE.txt"
+            excludes += "/META-INF/NOTICE"
+            excludes += "/META-INF/NOTICE.txt"
+            excludes += "/META-INF/*.kotlin_module"
         }
     }
 }
@@ -76,4 +82,5 @@ dependencies {
     implementation("androidx.media:media:1.4.2")
     implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.16.1")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation("org.apache.httpcomponents:httpmime:4.5.13")
 }
