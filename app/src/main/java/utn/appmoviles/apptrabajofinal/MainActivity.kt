@@ -27,6 +27,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import okhttp3.*
 import org.json.JSONObject
+import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 
 class MainActivity : ComponentActivity() {
@@ -69,12 +70,11 @@ class MainActivity : ComponentActivity() {
                     Manifest.permission.RECORD_AUDIO
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                // Solicitar permisos si no están concedidos
                 ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), 1)
                 return
             }
 
-            isRecording = true // Marcar como grabando
+            isRecording = true
             recordingJob = CoroutineScope(Dispatchers.Main).launch {
                 while (isRecording) {
                     recordAndSendAudio(onResult)
@@ -84,22 +84,31 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    @SuppressLint("MissingPermission")
     private suspend fun recordAndSendAudio(onResult: (String) -> Unit) {
         withContext(Dispatchers.IO) {
             try {
+                // Verifica si el permiso de grabación de audio ha sido concedido
+                if (ActivityCompat.checkSelfPermission(this@MainActivity, Manifest.permission.RECORD_AUDIO)
+                    != PackageManager.PERMISSION_GRANTED) {
+                    // Si no se ha concedido, puedes lanzar una excepción o manejarlo de alguna manera
+                    Log.e("MainActivity", "Permiso de grabación de audio no concedido.")
+                    return@withContext
+                }
+
+                // Configuración para grabar audio en formato PCM
                 audioRecord = AudioRecord(
                     MediaRecorder.AudioSource.MIC,
-                    16000,  // Tasa de muestreo
+                    16000,  // Tasa de muestreo de 16 kHz
                     android.media.AudioFormat.CHANNEL_IN_MONO,
                     android.media.AudioFormat.ENCODING_PCM_16BIT,
                     1024 * 2
                 )
 
                 audioRecord.startRecording()
-                val buffer = ByteArray(16000 * 3) // Grabar 3 segundos de audio
+                val buffer = ByteArray(16000 * 7) // Buffer para 3 segundos de grabación
                 audioRecord.read(buffer, 0, buffer.size)
 
+                // Enviar el archivo PCM al backend
                 sendAudioToBackend(buffer, onResult)
 
                 audioRecord.stop()
@@ -119,11 +128,10 @@ class MainActivity : ComponentActivity() {
                 connection.doOutput = true
                 connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=boundary")
 
-                // Construir el cuerpo de la solicitud con multipart
                 val boundary = "boundary"
                 val outputStream = DataOutputStream(connection.outputStream)
                 outputStream.writeBytes("--$boundary\r\n")
-                outputStream.writeBytes("Content-Disposition: form-data; name=\"audio\"; filename=\"audio.wav\"\r\n")
+                outputStream.writeBytes("Content-Disposition: form-data; name=\"audio\"; filename=\"audio.pcm\"\r\n")
                 outputStream.writeBytes("Content-Type: application/octet-stream\r\n\r\n")
                 outputStream.write(audioData)
                 outputStream.writeBytes("\r\n--$boundary--\r\n")
@@ -141,10 +149,10 @@ class MainActivity : ComponentActivity() {
                         val categoryName = when (categoryIndex) {
                             0 -> "sonidos de bomberos"
                             1 -> "sonidos de policía"
-                            else -> "desconocido"
+                            10 -> "NO detecta"
+                            else -> ""
                         }
 
-                        // Llamar a la función de resultado con el nombre de la categoría
                         onResult(categoryName)
                     }
                 } else {
@@ -159,8 +167,8 @@ class MainActivity : ComponentActivity() {
 
     private fun stopContinuousListening() {
         if (isRecording) {
-            isRecording = false // Marcar como no grabando
-            recordingJob?.cancel() // Detener la corrutina de grabación continua
+            isRecording = false
+            recordingJob?.cancel()
         }
     }
 }
