@@ -83,4 +83,5 @@ dependencies {
     implementation("org.tensorflow:tensorflow-lite-select-tf-ops:2.16.1")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
     implementation("org.apache.httpcomponents:httpmime:4.5.13")
+    implementation("androidx.datastore:datastore-core:1.1.1")
 }

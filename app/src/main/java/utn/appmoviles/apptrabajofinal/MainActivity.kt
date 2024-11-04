@@ -41,6 +41,9 @@ class MainActivity : ComponentActivity() {
         // Solicitar permiso para grabar audio al inicio
         ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.RECORD_AUDIO), 1)
 
+        // Instancia de ColorPreferencesManager usando el contexto de la actividad
+        val colorPreferencesManager = ColorPreferencesManager(this)
+
         setContent {
             val navigationController = rememberNavController()
             var audioCategory by remember { mutableStateOf("No detectada") }
@@ -52,12 +55,12 @@ class MainActivity : ComponentActivity() {
                 composable(Routes.PantallaPrincipal.route) {
                     PantallaPrincipal(
                         navigationController = navigationController,
+                        colorPreferencesManager = colorPreferencesManager,
                         audioCategory = audioCategory,
-                        onStartListening = { startContinuousListening { category -> audioCategory = "Categoría: $category" } },
+                        onStartListening = { startContinuousListening { category -> audioCategory = category } },
                         onStopListening = { stopContinuousListening() },
                     )
                 }
-                composable(Routes.PantallaConfiguracion.route) { PantallaConfiguracion(navigationController) }
                 composable(Routes.PantallaEntrenamientoSonido.route) { PantallaEntrenamientoSonido(navigationController) }
             }
         }
@@ -148,8 +151,8 @@ class MainActivity : ComponentActivity() {
                         // Mapear el índice a la categoría
                         val categoryName = when (categoryIndex) {
                             0 -> "sonidos de bomberos"
-                            1 -> "sonidos de policía"
-                            10 -> "NO detecta"
+                            1 -> "sonidos de policia"
+                            10 -> "No detecta"
                             else -> ""
                         }
 
