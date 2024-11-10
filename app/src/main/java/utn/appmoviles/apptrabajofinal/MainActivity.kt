@@ -17,18 +17,15 @@ import android.media.MediaRecorder
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.core.app.ActivityCompat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import okhttp3.*
-import org.json.JSONObject
-import java.io.ByteArrayOutputStream
-import java.io.DataOutputStream
+import utn.appmoviles.apptrabajofinal.config.Environment
+import utn.appmoviles.apptrabajofinal.ui.data.network.services.sendAudioToBackend
+
 
 class MainActivity : ComponentActivity() {
     private lateinit var audioRecord: AudioRecord
@@ -61,7 +58,7 @@ class MainActivity : ComponentActivity() {
                         onStopListening = { stopContinuousListening() },
                     )
                 }
-                composable(Routes.PantallaEntrenamientoSonido.route) { PantallaEntrenamientoSonido(navigationController) }
+                composable(Routes.PantallaGrabacion.route) { PantallaGrabacion(navigationController) }
             }
         }
     }
@@ -116,52 +113,6 @@ class MainActivity : ComponentActivity() {
 
                 audioRecord.stop()
                 audioRecord.release()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    private fun sendAudioToBackend(audioData: ByteArray, onResult: (String) -> Unit) {
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val url = URL("http://192.168.100.99:5000/upload")
-                val connection = url.openConnection() as HttpURLConnection
-                connection.requestMethod = "POST"
-                connection.doOutput = true
-                connection.setRequestProperty("Content-Type", "multipart/form-data; boundary=boundary")
-
-                val boundary = "boundary"
-                val outputStream = DataOutputStream(connection.outputStream)
-                outputStream.writeBytes("--$boundary\r\n")
-                outputStream.writeBytes("Content-Disposition: form-data; name=\"audio\"; filename=\"audio.pcm\"\r\n")
-                outputStream.writeBytes("Content-Type: application/octet-stream\r\n\r\n")
-                outputStream.write(audioData)
-                outputStream.writeBytes("\r\n--$boundary--\r\n")
-                outputStream.flush()
-                outputStream.close()
-
-                if (connection.responseCode == HttpURLConnection.HTTP_OK) {
-                    val result = connection.inputStream.bufferedReader().readText()
-                    withContext(Dispatchers.Main) {
-                        // Parsear el resultado JSON
-                        val jsonObject = JSONObject(result)
-                        val categoryIndex = jsonObject.getInt("category")
-
-                        // Mapear el índice a la categoría
-                        val categoryName = when (categoryIndex) {
-                            0 -> "sonidos de bomberos"
-                            1 -> "sonidos de policia"
-                            10 -> "No detecta"
-                            else -> ""
-                        }
-
-                        onResult(categoryName)
-                    }
-                } else {
-                    Log.e("MainActivity", "Error al enviar audio: ${connection.responseCode}")
-                }
-                connection.disconnect()
             } catch (e: Exception) {
                 e.printStackTrace()
             }

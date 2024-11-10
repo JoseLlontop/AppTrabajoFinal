@@ -7,6 +7,12 @@ android {
     namespace = "utn.appmoviles.apptrabajofinal"
     compileSdk = 34
 
+    sourceSets {
+        getByName("main") {
+            resources.srcDirs("src/main/resources")
+        }
+    }
+
     defaultConfig {
         applicationId = "utn.appmoviles.apptrabajofinal"
         minSdk = 24
@@ -84,4 +90,7 @@ dependencies {
     implementation("androidx.datastore:datastore-preferences:1.1.1")
     implementation("org.apache.httpcomponents:httpmime:4.5.13")
     implementation("androidx.datastore:datastore-core:1.1.1")
+    implementation("androidx.compose.material:material-icons-core:1.5.0")
+    implementation("androidx.compose.material:material-icons-extended:1.5.0")
+    implementation("io.github.cdimascio:dotenv-kotlin:6.3.1")
 }

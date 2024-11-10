@@ -212,9 +212,9 @@ fun PantallaPrincipal(
             }
         }
 
-        // Botón para añadir nuevo sonido y navegar a PantallaEntrenamientoSonido
+        // Botón para añadir nuevo sonido y navegar a PantallaGrabacion
         Button(
-            onClick = { navigationController?.navigate(Routes.PantallaEntrenamientoSonido.route) },
+            onClick = { navigationController?.navigate(Routes.PantallaGrabacion.route) },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 16.dp)
