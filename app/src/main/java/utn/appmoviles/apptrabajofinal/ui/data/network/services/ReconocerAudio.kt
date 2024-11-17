@@ -35,16 +35,9 @@ fun sendAudioToBackend(audioData: ByteArray, onResult: (String) -> Unit) {
                 withContext(Dispatchers.Main) {
                     // Parsear el resultado JSON
                     val jsonObject = JSONObject(result)
-                    val categoryIndex = jsonObject.getInt("category")
+                    val categoryName = jsonObject.getString("category_name")
 
-                    // Mapear el índice a la categoría
-                    val categoryName = when (categoryIndex) {
-                        0 -> "sonidos de bomberos"
-                        1 -> "sonidos de policia"
-                        10 -> "No detecta"
-                        else -> ""
-                    }
-
+                    // Retornar el nombre de la categoría directamente
                     onResult(categoryName)
                 }
             } else {
