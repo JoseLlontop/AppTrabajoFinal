@@ -274,14 +274,14 @@ fun PantallaGrabacion(navigationController: NavHostController?) {
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(6.dp)
         ) {
             Icon(
                 imageVector = Icons.Default.FitnessCenter,
@@ -296,6 +296,12 @@ fun PantallaGrabacion(navigationController: NavHostController?) {
                 color = MaterialTheme.colorScheme.onSurface
             )
         }
+
+        Text(
+            text = "(Espere unos segundos y vuelva a ingresar a la app)",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
 
         resultMessage?.let { message ->
             LaunchedEffect(message) {
