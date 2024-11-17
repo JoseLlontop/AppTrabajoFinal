@@ -24,6 +24,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import utn.appmoviles.apptrabajofinal.config.Environment
+import utn.appmoviles.apptrabajofinal.ui.data.network.services.recibirTodasCategorias
 import utn.appmoviles.apptrabajofinal.ui.data.network.services.sendAudioToBackend
 
 
@@ -45,6 +46,16 @@ class MainActivity : ComponentActivity() {
             val navigationController = rememberNavController()
             var audioCategory by remember { mutableStateOf("No detectada") }
 
+            // Estado para almacenar las categorías obtenidas del backend
+            val categoriesState = remember { mutableStateOf<List<String>>(emptyList()) }
+
+            // Llamar a fetchCategoriesFromBackend al inicio para cargar las categorías
+            LaunchedEffect(Unit) {
+                recibirTodasCategorias { categories ->
+                    categoriesState.value = categories
+                }
+            }
+
             NavHost(
                 navController = navigationController,
                 startDestination = Routes.PantallaPrincipal.route
@@ -54,6 +65,7 @@ class MainActivity : ComponentActivity() {
                         navigationController = navigationController,
                         colorPreferencesManager = colorPreferencesManager,
                         audioCategory = audioCategory,
+                        categories = categoriesState.value, // Pasar categorías al composable
                         onStartListening = { startContinuousListening { category -> audioCategory = category } },
                         onStopListening = { stopContinuousListening() },
                     )

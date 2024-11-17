@@ -57,10 +57,6 @@ import utn.appmoviles.apptrabajofinal.model.Routes
 // Extensión para DataStore
 val Context.dataStore by preferencesDataStore(name = "color_preferences")
 
-// Definición de claves de preferencias
-val COLOR_PREFERENCE_BOMBEROS = intPreferencesKey("color_bomberos")
-val COLOR_PREFERENCE_POLICIA = intPreferencesKey("color_policia")
-
 // Clase de manejo de preferencias de color
 class ColorPreferencesManager(private val context: Context) {
     suspend fun saveColorPreference(categoryKey: Preferences.Key<Int>, color: Color) {
@@ -77,37 +73,41 @@ class ColorPreferencesManager(private val context: Context) {
     }
 }
 
+// Generar claves de preferencias dinámicamente
+fun generatePreferenceKey(category: String): Preferences.Key<Int> {
+    return intPreferencesKey("color_${category.replace(" ", "_").lowercase()}")
+}
+
 @Composable
 fun PantallaPrincipal(
     navigationController: NavHostController?,
-    audioCategory: String,  // Audio detectado recibido de MainActivity
+    audioCategory: String, // Audio detectado recibido de MainActivity
     colorPreferencesManager: ColorPreferencesManager,
+    categories: List<String>, // Lista de categorías obtenida desde el backend
     onStartListening: () -> Unit,
     onStopListening: () -> Unit
 ) {
-    // Definir las categorías de audio y sus claves de color
-    val categories = listOf(
-        Pair("Sonidos de bomberos", COLOR_PREFERENCE_BOMBEROS),
-        Pair("Sonidos de policía", COLOR_PREFERENCE_POLICIA)
-    )
-    val defaultColors = listOf(Color.Red, Color.Blue)
+    val defaultColors = listOf(Color.Red, Color.Blue, Color.Green, Color.Yellow, Color.Magenta, Color.White)
+
+    // Mapear categorías a preferencias y colores
+    val categoryMap = categories.associateWith { category ->
+        val index = categories.indexOf(category)
+        val defaultColor = defaultColors.getOrNull(index) ?: Color.Gray
+        Pair(generatePreferenceKey(category), defaultColor)
+    }
 
     // Obtener los colores guardados para cada categoría
-    val colors = categories.mapIndexed { index, category ->
-        val colorFlow = colorPreferencesManager.getColorPreference(category.second, defaultColors[index])
-        colorFlow.collectAsState(initial = defaultColors[index])
+    val colors = categoryMap.mapValues { (_, value) ->
+        val (preferenceKey, defaultColor) = value
+        colorPreferencesManager.getColorPreference(preferenceKey, defaultColor).collectAsState(initial = defaultColor)
     }
+
+    // Seleccionar el color basado en audioCategory
+    val backgroundColor = colors[audioCategory]?.value ?: Color.White
 
     // Variables de estado para controlar la grabación y el parpadeo
     var isRecording by remember { mutableStateOf(false) }
     var isFlashing by remember { mutableStateOf(false) }
-
-    // Seleccionar el color basado en audioCategory
-    val backgroundColor = when (audioCategory) {
-        "sonidos de bomberos" -> colors[0].value
-        "sonidos de policia" -> colors[1].value
-        else -> Color.White  // "No detecta" por defecto es blanco
-    }
 
     // Efecto de parpadeo
     var flashColor by remember { mutableStateOf(backgroundColor) }
@@ -127,14 +127,14 @@ fun PantallaPrincipal(
     ) {
 
         Box(
-            modifier = Modifier.fillMaxWidth(), // Hace que el Box ocupe todoo el ancho de la pantalla
-            contentAlignment = Alignment.Center // Centra el contenido dentro del Box
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
         ) {
             Text(
                 text = "Detección de sonidos",
-                fontSize = 24.sp,
+                fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
-                color = Color(0xFF3F51B5),
+                color = Color.Black,
                 modifier = Modifier.padding(vertical = 35.dp)
             )
         }
@@ -146,13 +146,14 @@ fun PantallaPrincipal(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(categories.size) { index ->
-                val (categoryName, categoryKey) = categories[index]
-                val selectedColor = colors[index].value
+                val categoryName = categories[index]
+                val preferenceKey = categoryMap[categoryName]?.first ?: return@items
+                val selectedColor = colors[categoryName]?.value ?: Color.Gray
 
                 // Estado para el desplegable de color
                 var expanded by remember { mutableStateOf(false) }
-                val colorOptions = listOf(Color.Red, Color.Green, Color.Blue, Color.Yellow, Color.Magenta)
-                val colorNames = listOf("Rojo", "Verde", "Azul", "Amarillo", "Magenta")
+                val colorOptions = listOf(Color.Red, Color.Green, Color.Blue, Color.Yellow, Color.Magenta, Color.White)
+                val colorNames = listOf("Rojo", "Verde", "Azul", "Amarillo", "Magenta", "Blanco")
 
                 Card(
                     modifier = Modifier.fillMaxWidth(),
@@ -179,8 +180,8 @@ fun PantallaPrincipal(
                             ) {
                                 Text(
                                     text = "Seleccionar color",
-                                    fontSize = 14.sp,
-                                    color = Color.White
+                                    fontSize = 15.sp,
+                                    color = Color.Black
                                 )
                             }
                             DropdownMenu(
@@ -193,7 +194,7 @@ fun PantallaPrincipal(
                                         onClick = {
                                             expanded = false
                                             CoroutineScope(Dispatchers.IO).launch {
-                                                colorPreferencesManager.saveColorPreference(categoryKey, colorOption)
+                                                colorPreferencesManager.saveColorPreference(preferenceKey, colorOption)
                                             }
                                         },
                                         leadingIcon = {

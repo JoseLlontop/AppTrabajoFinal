@@ -107,9 +107,9 @@ fun PantallaGrabacion(navigationController: NavHostController?) {
     ) {
         Text(
             text = "Grabador de Audio",
-            fontSize = 30.sp,
+            fontSize = 28.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF3F51B5),
+            color = Color.Black,
             modifier = Modifier.padding(vertical = 42.dp)
         )
 
@@ -189,13 +189,13 @@ fun PantallaGrabacion(navigationController: NavHostController?) {
             )
         }
 
-        Spacer(modifier = Modifier.height(42.dp))
+        Spacer(modifier = Modifier.height(44.dp))
 
         Text(
             text = "Lista de Grabaciones",
-            fontSize = 24.sp,
+            fontSize = 25.sp,
             fontWeight = FontWeight.Bold,
-            color = Color(0xFF3F51B5)
+            color = Color.Black
         )
 
         LazyColumn(
@@ -249,7 +249,7 @@ fun PantallaGrabacion(navigationController: NavHostController?) {
                             Image(
                                 painter = painterResource(id = R.drawable.whatsapp),
                                 contentDescription = "Enviar por WhatsApp",
-                                modifier = Modifier.size(24.dp)
+                                modifier = Modifier.size(30.dp)
                             )
                         }
 
